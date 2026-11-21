@@ -1,61 +1,23 @@
-// Every tuning number and colour in one place. The playfield is a fixed 1280x720 logical area;
-// the renderer scales it to the window, so no rule below depends on the screen size.
-
-export const FIELD = { width: 1280, height: 720, groundY: 664 };
-
-/** The simulation's fixed step, in seconds: 60 updates a second whatever the display's rate. */
-export const STEP = 1 / 60;
-
-export const PLAYER = {
-  width: 72,
-  height: 24,
-  speed: 560,
-  invulnerable: 1.5,
-};
-
-export const LIVES = 3;
-
-export const BLOCK = {
-  minWidth: 40,
-  maxWidth: 110,
-  height: 36,
-  speed: 240,
-  speedPerLevel: 30,
-  speedJitter: 90,
-  interval: 0.55,
-  intervalScale: 0.88,
-  minInterval: 0.14,
-  dodgePoints: 1,
-};
-
-export const COIN = {
-  size: 24,
-  speed: 190,
-  speedPerLevel: 14,
-  interval: 1.4,
-  intervalJitter: 0.8,
-  points: 10,
-};
-
-/** Seconds of play per level, and the last level: speeds and spawn rates stop growing there. */
-export const LEVEL = { seconds: 12, max: 12 };
-
-/** How many falling things can exist at once; the pool is allocated once, at boot. */
-export const POOL_SIZE = 64;
-
-export const PALETTE = {
-  backdrop: '#11141b',
-  sky: '#1b1f2a',
-  ground: '#2a3040',
-  player: '#4fc3f7',
-  block: '#e5534b',
-  coin: '#f2c94c',
-  panel: '#252b38',
-  text: '#eef1f5',
-  muted: '#8b93a3',
-};
-
-export const FONT = 'system-ui, -apple-system, "Segoe UI", sans-serif';
-
-/** Where the best score is kept between visits (this browser only). */
-export const BEST_KEY = 'block-dodger.best';
+export const WORLD = { width: 3400, height: 2600, block: 400, road: 112 };
+export const VIEW = { width: 1280, height: 720 };
+export const CAR_TYPES = [
+  { name: 'Civic', color: '#5a9ea1', speed: 310, value: 900 },
+  { name: 'Meter taxi', color: '#efb53c', speed: 285, value: 1200 },
+  { name: 'Ranch pickup', color: '#b8c0b8', speed: 255, value: 1600 },
+  { name: 'Comet sport', color: '#d95748', speed: 380, value: 4200 },
+  { name: 'Parcel van', color: '#d5d2c3', speed: 225, value: 2100 },
+  { name: 'Harbor patrol', color: '#e8e4ce', speed: 330, value: 3200 },
+  { name: 'Switchback bike', color: '#61a75d', speed: 355, value: 1800 },
+  { name: 'Skiff', color: '#d1e2d8', speed: 280, value: 2500 }
+];
+export const MISSIONS = [
+  { name: 'Last Light', giver: 'Inez Vale', type: 'drive', brief: 'Take Inez across the canal before the patrol closes the bridge.', objective: 'Reach the blue marker in a vehicle', payout: 650 },
+  { name: 'Quiet Till', giver: 'Milo Rusk', type: 'robbery', brief: 'Clear the corner market register, then leave the block.', objective: 'Enter the market and hold E at the till', payout: 900 },
+  { name: 'Wake Line', giver: 'Nico Sol', type: 'boat', brief: 'Run Nico’s skiff through the south channel and lose the tail.', objective: 'Board a boat and reach the channel marker', payout: 1250 },
+  { name: 'Meter Running', giver: 'June Park', type: 'taxi', brief: 'Work the waterfront route and bring two fares home.', objective: 'Collect two passenger fares', payout: 800 },
+  { name: 'Cold Ledger', giver: 'Sera Knox', type: 'deal', brief: 'A weapons exchange has turned loud. Get the case out.', objective: 'Recover the case near the freight shed', payout: 1650 },
+  { name: 'Salt Sprint', giver: 'Cal Voss', type: 'race', brief: 'Beat Cal along the seawall without folding the car.', objective: 'Reach the finish in a vehicle', payout: 2100 },
+  { name: 'Breakwater', giver: 'Dani Quill', type: 'rescue', brief: 'Reach the marina office and bring Dani back to the safehouse.', objective: 'Find Dani at the marina', payout: 2750 },
+  { name: 'Blue Hour', giver: 'Inez Vale', type: 'heist', brief: 'Move the harbor bonds before the city wakes up.', objective: 'Drive to the bonded warehouse', payout: 6500 }
+];
+export const SAVE_KEY = 'meridian-heat.slot.1';
