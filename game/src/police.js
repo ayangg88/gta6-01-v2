@@ -14,13 +14,18 @@ export function addHeat(state, amount = 1) {
 export function updatePolice(state, dt) {
   const police = state.police;
   const player = state.vehicle || state.player;
-  if (police.wanted > 0 && state.time - police.lastCrime > 17 && Math.hypot(player.x - 1760, player.y - 1500) > 240) {
-    police.heat = Math.max(0, police.heat - dt / 22);
-    if (police.heat === 0 && Math.floor(state.time) % 4 === 0) police.wanted = Math.max(0, police.wanted - 1);
-  } else police.heat = 1;
+  const seen = police.cruisers.some(car => Math.hypot(car.x - player.x, car.y - player.y) < 165);
+  if (police.wanted && !seen && state.time - police.lastCrime > 6) {
+    police.heat -= dt / 12;
+    if (police.heat <= 0) {
+      police.wanted -= 1;
+      police.heat = 1;
+    }
+  } else if (seen) police.heat = 1;
+  police.cruisers.length = Math.min(police.cruisers.length, police.wanted);
   while (police.cruisers.length < police.wanted && police.cruisers.length < 5) {
     const angle = state.rng() * Math.PI * 2;
-    const car = createVehicle(player.x + Math.cos(angle) * 460, player.y + Math.sin(angle) * 460, 5, angle + Math.PI, false);
+    const car = createVehicle(player.x + Math.cos(angle) * 460, player.y + Math.sin(angle) * 460, police.wanted === 5 && police.cruisers.length === 4 ? 4 : 5, angle + Math.PI, false);
     car.health = 100;
     police.cruisers.push(car);
   }
@@ -39,7 +44,7 @@ export function updatePolice(state, dt) {
     heli.orbit += dt * 0.35;
     heli.x += (player.x + Math.cos(heli.orbit) * 180 - heli.x) * dt * 0.16;
     heli.y += (player.y - 360 + Math.sin(heli.orbit) * 75 - heli.y) * dt * 0.16;
-    if (Math.hypot(player.x - heli.x, player.y - heli.y) < 440) police.lastCrime = state.time;
+
   }
   for (const cruiser of police.cruisers) {
     const target = state.vehicle || state.player;
@@ -56,6 +61,8 @@ export function updatePolice(state, dt) {
   for (const officer of police.officers) {
     const target = state.vehicle || state.player;
     officer.angle = Math.atan2(target.y - officer.y, target.x - officer.x);
+    officer.x += Math.cos(officer.angle) * 43 * dt;
+    officer.y += Math.sin(officer.angle) * 43 * dt;
     if (Math.hypot(target.x - officer.x, target.y - officer.y) < 340 && state.time - officer.firing > 2.4) {
       officer.firing = state.time;
       state.effects.push({ x: target.x, y: target.y, life: 0.2, kind: 'impact' });
@@ -90,11 +97,6 @@ export function drawPolice(ctx, state) {
     ctx.fillRect(-52, -9, 8, 18);
     ctx.fillRect(35, -9, 8, 18);
     ctx.restore();
-  }
-  if (state.armored) {
-    const van = createVehicle(state.player.x + 410, state.player.y + 270, 4, -0.3, false);
-    van.color = '#353b41';
-    drawVehicle(ctx, van);
   }
   if (police.helicopter) {
     const heli = police.helicopter;

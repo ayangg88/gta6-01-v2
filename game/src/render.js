@@ -1,3 +1,4 @@
+import { drawActivities } from './activities.js';
 import { WORLD } from './config.js';
 import { drawCity } from './city.js';
 import { drawHud } from './hud.js';
@@ -33,6 +34,7 @@ export function createRenderer(canvas) {
     ctx.translate(-camX + shakeX, -camY + shakeY);
     drawCity(ctx, { x: camX, y: camY }, state.cityRng, Math.floor(state.dayClock));
     drawMissionMarker(ctx, state);
+    drawActivities(ctx, state);
     if (state.vehicle && !state.traffic.includes(state.vehicle) && !state.boats.includes(state.vehicle)) drawVehicle(ctx, state.vehicle, true);
     for (const skid of state.skids) {
       ctx.save();

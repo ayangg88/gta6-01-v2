@@ -1,3 +1,4 @@
+import { WEAPONS } from './weapons.js';
 import { MISSIONS } from './config.js';
 import { drawMinimap } from './minimap.js';
 import { missionByNumber } from './missions.js';
@@ -34,6 +35,12 @@ export function drawHud(ctx, state, screen) {
   ctx.fillStyle = '#65b4ab';
   ctx.fillRect(38, 205, 225 * save.armor / 100, 9);
   drawMinimap(ctx, state);
+  if (!state.vehicle) {
+    const weapon = WEAPONS[state.weaponIndex];
+    panel(ctx, 1035, 625, 221, 72);
+    text(ctx, weapon.toUpperCase(), 1053, 652, 16, '#e7c46f', 'bold');
+    text(ctx, save.weapons.includes(weapon) ? String(save.ammo[weapon]) + ' ROUNDS' : 'LOCKED', 1053, 679, 14);
+  }
   panel(ctx, 22, 617, 690, 80);
   text(ctx, 'PORT MERIDIAN  /  ' + state.district, 40, 642, 12, '#d5bd7d', 'bold');
   text(ctx, state.objective, 40, 669, 17, '#f2eee2', 'bold');

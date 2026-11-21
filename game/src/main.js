@@ -7,7 +7,8 @@ import { seedPedestrians, updatePedestrians, fleeFrom } from './pedestrians.js';
 import { createPolice, addHeat, updatePolice } from './police.js';
 import { startMission, advanceDialogue, updateMission, missionMarker } from './missions.js';
 import { collectAmmo, fireWeapon, WEAPONS } from './weapons.js';
-import { buyWeapon, buyCar, payTaxiFare, robTill } from './economy.js';
+import { updateActivities } from './activities.js';
+import { buyWeapon, buyCar, robTill } from './economy.js';
 import { getStores } from './city.js';
 import { createRenderer } from './render.js';
 import { drawHud, districtName } from './hud.js';
@@ -30,9 +31,9 @@ function createState(saved = loadSave()) {
     save: saved,
     player: { x: 815, y: 700 },
     vehicle: null,
-    traffic: [createVehicle(860, 700, 3), createVehicle(1480, 880, 1), createVehicle(510, 570, 6), ...seedTraffic(rng)],
+    traffic: [createVehicle(860, 700, 3), createVehicle(1480, 880, 1), createVehicle(510, 570, 6), createVehicle(1730, 1130, 5), ...seedTraffic(rng)],
     pedestrians: seedPedestrians(rng),
-    boats: [createVehicle(2410, 2010, 7, -0.18), createVehicle(2660, 2207, 7, -0.12)],
+    boats: [createVehicle(2410, 1940, 7, -0.18), createVehicle(2660, 2207, 7, -0.12)],
     packages: [],
     police: createPolice(),
     effects: [],
@@ -58,6 +59,7 @@ function createState(saved = loadSave()) {
     lastRobbery: -40,
     lastShot: null,
     lastCrime: 0,
+    lastSiren: -10,
     shake: 0,
     busted: false,
     armored: false,
@@ -142,12 +144,14 @@ function interact() {
     return;
   }
   if (state.shop) {
+    if (state.shop === 'market') robTill(state);
     state.shop = null;
     return;
   }
   if (state.vehicle) {
     const exitX = state.vehicle.x - Math.sin(state.vehicle.angle) * 45;
     const exitY = state.vehicle.y + Math.cos(state.vehicle.angle) * 45;
+    if (state.vehicle.type === 7 && state.vehicle.y > 2040) return;
     state.player.x = exitX;
     state.player.y = exitY;
     state.vehicle.speed = 0;
@@ -170,7 +174,6 @@ function interact() {
   if (store) {
     if (store.kind === 'market') {
       state.shop = 'market';
-      robTill(state);
       return;
     }
     state.shop = store.kind;
@@ -181,11 +184,7 @@ function interact() {
     startMission(state, state.save.mission);
     return;
   }
-  if (state.vehicle == null && state.taxiPassenger) {
-    payTaxiFare(state);
-    state.taxiPassenger = false;
-    return;
-  }
+
 }
 
 function updateInteractions() {
@@ -218,40 +217,35 @@ function updateInteractions() {
     state.toast = ['CHANNEL 1  /  LANTERN FM', 'CHANNEL 2  /  COASTAL STATIC', 'CHANNEL 3  /  NIGHT WINDOW'][state.save.radio];
     state.toastTimer = 2.5;
   }
-  if (input.tap('Digit1')) state.weaponIndex = 0;
-  if (input.tap('Digit2')) state.weaponIndex = 1;
-  if (input.tap('Digit3')) state.weaponIndex = 2;
-  if (input.tap('KeyF')) {
-    const store = nearestStore();
+  if (input.tap('Digit1')) {
     if (state.shop === 'arms') buyWeapon(state, 'Shotgun');
     else if (state.shop === 'garage') buyCar(state, 3);
-    else if (store?.kind === 'arms') state.shop = 'arms';
-    else if (store?.kind === 'garage') state.shop = 'garage';
-    else fireWeapon(state);
+    else if (state.shop === 'market' && state.save.cash >= 120) {
+      state.save.cash -= 120;
+      collectAmmo(state, 'Pistol', 12);
+    } else state.weaponIndex = 0;
   }
-  if (input.tap('KeyG')) {
+  if (input.tap('Digit2')) {
     if (state.shop === 'arms') buyWeapon(state, 'SMG');
     else if (state.shop === 'garage') buyCar(state, 2);
-    else if (state.shop === 'market') collectAmmo(state, 'Pistol', 12);
-    else fireWeapon(state);
+    else state.weaponIndex = 1;
   }
-  if (input.tap('KeyH')) {
+  if (input.tap('Digit3')) {
     if (state.shop === 'arms') buyWeapon(state, 'Armor');
     else if (state.shop === 'garage') buyCar(state, 4);
-    else if (state.shop === 'market') {
-      state.save.cash = Math.max(0, state.save.cash - 220);
+    else if (state.shop === 'market' && state.save.cash >= 220) {
+      state.save.cash -= 220;
       state.save.health = Math.min(100, state.save.health + 25);
-      state.toast = 'FIRST AID  /  HEALTH RESTORED';
-      state.toastTimer = 2;
-    }
+    } else state.weaponIndex = 2;
   }
-  if (input.down('Mouse0') || input.tap('Space') && state.onFoot) fireWeapon(state);
+  if (input.tap('KeyF') || input.tap('Space') && state.onFoot) shoot();
+
 }
 
 function update(dt) {
   state.time += dt;
   state.elapsed += dt;
-  state.dayClock = (state.dayClock + dt / 1000) % 24;
+  state.dayClock = (state.dayClock + dt / 22) % 24;
   state.rain = Math.floor(state.time / 72) % 5 === 4;
   state.toastTimer = Math.max(0, state.toastTimer - dt);
   state.shake = Math.max(0, state.shake - dt * 13);
@@ -271,16 +265,14 @@ function update(dt) {
     pickupSound();
     storeSave(state.save);
   }
-  if (!state.vehicle && Math.floor(state.time / 24) !== state.lastTaxiSpawn) {
-    state.lastTaxiSpawn = Math.floor(state.time / 24);
-    state.taxiPassenger = Math.hypot(state.player.x - 1460, state.player.y - 880) < 170;
-  }
   updateVehicles(state, dt);
   if (state.vehicle) {
     state.player.x = state.vehicle.x;
     state.player.y = state.vehicle.y;
     updateEngine(state.vehicle.speed, true);
+    if (state.vehicle.health <= 0) state.wasted = true;
   }
+  if (!state.vehicle) updateEngine(0, false);
   if (!state.vehicle && !state.dialogue && !state.shop) {
     const dx = (state.controls.right ? 1 : 0) - (state.controls.left ? 1 : 0);
     const dy = (state.controls.brake ? 1 : 0) - (state.controls.accelerate ? 1 : 0);
@@ -288,6 +280,7 @@ function update(dt) {
     state.player.x = Math.max(205, Math.min(3080, state.player.x + dx / length * 145 * dt));
     state.player.y = Math.max(185, Math.min(1945, state.player.y + dy / length * 145 * dt));
   }
+  updateActivities(state);
   updatePedestrians(state, dt);
   updatePolice(state, dt);
   const previous = state.activeMission;
@@ -328,11 +321,17 @@ canvas.addEventListener('pointermove', (event) => {
   pointer.x = (event.clientX - bounds.left) / bounds.width * 1280;
   pointer.y = (event.clientY - bounds.top) / bounds.height * 720;
 });
+function shoot() {
+  if (state.shop || state.missionComplete) return;
+  const ammo = state.save.ammo[WEAPONS[state.weaponIndex]];
+  fireWeapon(state);
+  if (state.save.ammo[WEAPONS[state.weaponIndex]] < ammo) gunSound(WEAPONS[state.weaponIndex]);
+}
+
 canvas.addEventListener('pointerdown', () => {
   if (screen === 'title') screen = 'play';
   else if (screen === 'play' && state.onFoot) {
-    fireWeapon(state);
-    gunSound(WEAPONS[state.weaponIndex]);
+    shoot();
   }
 });
 
@@ -363,6 +362,7 @@ function stage(name) {
   state.screen = 'play';
   screen = 'play';
   state.dayClock = 16.25;
+  state.toastTimer = 0;
   state.player.x = 950;
   state.player.y = 700;
   state.objective = 'Lose the units along the Crown Center boulevard';
@@ -371,7 +371,13 @@ function stage(name) {
     state.player.y = 700;
     state.objective = 'Walk the Crown Center strip';
     state.police.wanted = 0;
-    state.traffic = state.traffic.slice(0, 24);
+    state.player.y = 448;
+    state.traffic = Array.from({ length: 14 }, (_, i) => createVehicle(340 + i % 7 * 152, 320 + Math.floor(i / 7) * 42, i % 7, i < 7 ? 0 : Math.PI));
+    for (let i = 0; i < 24; i += 1) {
+      const person = state.pedestrians[i];
+      person.x = 305 + i % 12 * 86;
+      person.y = i < 12 ? 272 : 419;
+    }
     state.pedestrians = state.pedestrians.slice(0, 72);
   }
   if (name === 'mission') {
@@ -384,25 +390,25 @@ function stage(name) {
     state.lastRobbery = -40;
   }
   if (name === 'chase') {
-    state.vehicle = createVehicle(970, 710, 3, -0.05);
+    state.vehicle = createVehicle(970, 352, 3, -0.05);
     state.vehicle.speed = 265;
     state.player.x = state.vehicle.x;
     state.player.y = state.vehicle.y;
     state.police.wanted = 3;
     state.police.heat = 1;
-    state.police.helicopter = { x: 1035, y: 395, beam: 360, orbit: 0.4 };
-    state.police.cruisers = [createVehicle(720, 765, 5, -0.04), createVehicle(600, 646, 5, 0.04)];
+    state.police.helicopter = { x: 1150, y: 148, beam: 360, orbit: 0.4 };
+    state.police.cruisers = [createVehicle(810, 379, 5, -0.04), createVehicle(694, 325, 5, 0.04)];
     state.police.officers = [];
     state.traffic = state.traffic.slice(0, 14);
     state.objective = 'Break line of sight and reach the marina cut';
   }
   if (name === 'drive') {
-    state.vehicle = createVehicle(970, 710, 3, 0.04);
+    state.vehicle = createVehicle(970, 345, 3, 0.04);
     state.vehicle.speed = 226;
     state.player.x = state.vehicle.x;
     state.player.y = state.vehicle.y;
     state.police.wanted = 2;
-    state.police.cruisers = [createVehicle(680, 680, 5, 0)];
+    state.police.cruisers = [createVehicle(780, 359, 5, 0)];
     state.objective = 'Keep the wheels moving  /  lose the patrol';
   }
 }

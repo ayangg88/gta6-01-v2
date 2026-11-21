@@ -42,7 +42,11 @@ export function pickupSound() {
 }
 
 export function updateEngine(speed, driving) {
-  if (!audioContext || !driving) return;
+  if (!audioContext) return;
+  if (!driving) {
+    engineGain?.gain.setTargetAtTime(0, audioContext.currentTime, 0.08);
+    return;
+  }
   if (!engine) {
     engine = audioContext.createOscillator();
     engineGain = audioContext.createGain();
