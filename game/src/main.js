@@ -363,28 +363,36 @@
     state = createState(resetSave());
     state.screen = 'play';
     screen = 'play';
-    state.dayClock = 16.25;
+    state.stagedShot = name;
+    state.dayClock = 12.1;
     state.toastTimer = 0;
-    state.player.x = 950;
-    state.player.y = 700;
     state.objective = 'Lose the units along the Crown Center boulevard';
     if (name === 'street') {
-      state.player.x = 830;
-      state.player.y = 700;
-      state.objective = 'Walk the Crown Center strip';
+      state.stageCamera = { x: 2510, y: 1820 };
+      state.player.x = 2510;
+      state.player.y = 1715;
+      state.district = 'SOUTH BEACH';
+      state.objective = 'Cruise the South Beach market strip';
       state.police.wanted = 0;
-      state.player.y = 448;
-      state.traffic = Array.from({ length: 14 }, (_, i) => createVehicle(340 + i % 7 * 152, 320 + Math.floor(i / 7) * 42, i % 7, i < 7 ? 0 : Math.PI));
-      for (let i = 0; i < 24; i += 1) {
+      state.traffic = Array.from({ length: 14 }, (_, i) => {
+        const x = 1940 + (i % 7) * 174;
+        const y = 1855 + Math.floor(i / 7) * 76;
+        const car = createVehicle(x, y, i % 7, i < 7 ? 0 : Math.PI);
+        car.civilian = i % 3 !== 0;
+        return car;
+      });
+      for (let i = 0; i < 32; i += 1) {
         const person = state.pedestrians[i];
-        person.x = 305 + i % 12 * 86;
-        person.y = i < 12 ? 272 : 419;
+        person.x = 1910 + i % 16 * 80;
+        person.y = i < 16 ? 1770 : 1832;
       }
       state.pedestrians = state.pedestrians.slice(0, 72);
     }
     if (name === 'mission') {
+      state.stageCamera = { x: 700, y: 520 };
       state.player.x = 685;
-      state.player.y = 335;
+      state.player.y = 354;
+      state.district = 'CROWN CENTER';
       state.police.wanted = 1;
       state.objective = 'Clear the corner market register, then leave the block';
       state.activeMission = 1;
@@ -392,25 +400,31 @@
       state.lastRobbery = -40;
     }
     if (name === 'chase') {
-      state.vehicle = createVehicle(970, 352, 3, -0.05);
+      state.stageCamera = { x: 1490, y: 800 };
+      state.vehicle = createVehicle(1490, 800, 3, Math.PI / 2);
       state.vehicle.speed = 265;
       state.player.x = state.vehicle.x;
       state.player.y = state.vehicle.y;
+      state.district = 'CROWN CENTER';
       state.police.wanted = 3;
       state.police.heat = 1;
-      state.police.helicopter = { x: 1150, y: 148, beam: 360, orbit: 0.4 };
-      state.police.cruisers = [createVehicle(810, 379, 5, -0.04), createVehicle(694, 325, 5, 0.04)];
+      state.police.helicopter = { x: 1550, y: 520, beam: 360, orbit: 0.4 };
+      state.police.cruisers = [createVehicle(1490, 900, 5, Math.PI / 2), createVehicle(1458, 980, 5, Math.PI / 2)];
       state.police.officers = [];
-      state.traffic = state.traffic.slice(0, 14);
+      state.traffic = state.traffic.slice(0, 20);
+      state.traffic.push(createVehicle(1510, 1128, 1, Math.PI), createVehicle(1580, 1050, 0, Math.PI));
       state.objective = 'Break line of sight and reach the marina cut';
     }
     if (name === 'drive') {
-      state.vehicle = createVehicle(970, 345, 3, 0.04);
+      state.stageCamera = { x: 2860, y: 2050 };
+      state.vehicle = createVehicle(2860, 1915, 3, 0.03);
+      state.district = 'SOUTH BEACH';
       state.vehicle.speed = 226;
       state.player.x = state.vehicle.x;
       state.player.y = state.vehicle.y;
       state.police.wanted = 2;
-      state.police.cruisers = [createVehicle(780, 359, 5, 0)];
+      state.police.cruisers = [createVehicle(2695, 1910, 5, 0.03), createVehicle(2550, 1917, 5, -0.02)];
+      state.boats = [createVehicle(2800, 2170, 7, -0.12), createVehicle(3000, 2260, 7, -0.18), createVehicle(2480, 2220, 7, 0.12)];
       state.objective = 'Keep the wheels moving  /  lose the patrol';
     }
   }

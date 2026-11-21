@@ -56,17 +56,31 @@
     }
   }
 
-  function drawActivities(ctx, state) {
+  function drawActivities(ctx, state, camera = { x: 0, y: 0 }) {
     const entries = [[RAMP, 'STUNT RAMP'], [RACE[state.raceGate || 0], 'SEAWALL SPRINT']];
     const target = taxiTarget(state);
     if (target) entries.push([target, state.taxiPassenger ? 'FARE DROP' : 'TAXI PICKUP']);
+    const panels = [[0, 0, 296, 232], [1048, 10, 1270, 232], [0, 606, 722, 720], state.vehicle ? [780, 614, 1030, 706] : [1028, 614, 1270, 706]];
+    if (state.toastTimer > 0 && !state.dialogue) panels.push([441, 44, 839, 92]);
+    if (state.dialogue) panels.push([335, 495, 945, 615]);
+    if (state.shop) panels.push([402, 124, 878, 528]);
+    const overlaps = (left, top, right, bottom) => panels.some(([x1, y1, x2, y2]) => left < x2 && right > x1 && top < y2 && bottom > y1);
     for (const [point, label] of entries) {
-      ctx.strokeStyle = '#f0c35f';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(point.x - 23, point.y - 16, 46, 32);
       ctx.font = 'bold 12px Arial';
-      ctx.fillStyle = '#fff1bc';
-      ctx.fillText(label, point.x - 34, point.y - 22);
+      const x = point.x - camera.x;
+      const y = point.y - camera.y;
+      const visible = x - 24 >= 0 && y - 17 >= 0 && x + 24 <= 1280 && y + 17 <= 720 && !overlaps(x - 24, y - 17, x + 24, y + 17);
+      if (visible) {
+        ctx.strokeStyle = '#f0c35f';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(point.x - 23, point.y - 16, 46, 32);
+      }
+      const labelX = x - 34;
+      const labelY = y - 22;
+      if (labelX >= 0 && labelY - 14 >= 0 && labelX + ctx.measureText(label).width <= 1280 && labelY + 2 <= 690 && !overlaps(labelX, labelY - 14, labelX + ctx.measureText(label).width, labelY + 2)) {
+        ctx.fillStyle = '#fff1bc';
+        ctx.fillText(label, point.x - 34, point.y - 22);
+      }
     }
   }
 

@@ -93,9 +93,17 @@
     return state.save.mission < MISSIONS.length ? { x: 935, y: 700 } : null;
   }
 
-  function drawMissionMarker(ctx, state) {
+  function drawMissionMarker(ctx, state, camera = { x: 0, y: 0 }) {
     const marker = missionMarker(state);
     if (!marker) return;
+    const screenX = marker.x - camera.x;
+    const screenY = marker.y - camera.y;
+    const panels = [[0, 0, 296, 232], [1048, 10, 1270, 232], [0, 606, 722, 720], state.vehicle ? [780, 614, 1030, 706] : [1028, 614, 1270, 706]];
+    if (state.toastTimer > 0 && !state.dialogue) panels.push([441, 44, 839, 92]);
+    if (state.dialogue) panels.push([335, 495, 945, 615]);
+    if (state.shop) panels.push([402, 124, 878, 528]);
+    const overlaps = (left, top, right, bottom) => panels.some(([x1, y1, x2, y2]) => left < x2 && right > x1 && top < y2 && bottom > y1);
+    if (screenX - 36 < 0 || screenY - 36 < 0 || screenX + 36 > 1280 || screenY + 36 > 720 || overlaps(screenX - 36, screenY - 36, screenX + 36, screenY + 36)) return;
     const pulse = 1 + Math.sin(state.time * 4) * 0.08;
     ctx.strokeStyle = '#65d7d1';
     ctx.lineWidth = 4;
@@ -106,9 +114,14 @@
     ctx.beginPath();
     ctx.arc(marker.x, marker.y, 22, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#f0eee2';
+    const label = state.activeMission == null ? `CONTACT: ${missionByNumber(state.save.mission).giver}` : missionByNumber(state.activeMission).name.toUpperCase();
     ctx.font = 'bold 13px Arial';
-    ctx.fillText(state.activeMission == null ? `CONTACT: ${missionByNumber(state.save.mission).giver}` : missionByNumber(state.activeMission).name.toUpperCase(), marker.x - 44, marker.y - 43);
+    const labelX = screenX - 44;
+    const labelY = screenY - 43;
+    if (labelX >= 0 && labelY - 15 >= 0 && labelX + ctx.measureText(label).width <= 1280 && labelY + 3 <= 690 && !overlaps(labelX, labelY - 15, labelX + ctx.measureText(label).width, labelY + 3)) {
+      ctx.fillStyle = '#f0eee2';
+      ctx.fillText(label, marker.x - 44, marker.y - 43);
+    }
   }
 
   globalThis.Meridian['missions'] = { missionByNumber, startMission, advanceDialogue, updateMission, missionMarker, drawMissionMarker };

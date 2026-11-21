@@ -28,15 +28,15 @@
       ctx.setTransform(view.scale, 0, 0, view.scale, view.x, view.y);
       const focus = state.vehicle || state.player;
       const ahead = state.vehicle ? state.vehicle.speed * 0.3 : 0;
-      const camX = Math.max(0, Math.min(WORLD.width - 1280, focus.x - 640 + Math.cos(state.vehicle?.angle || 0) * ahead));
-      const camY = Math.max(0, Math.min(WORLD.height - 720, focus.y - 360 + Math.sin(state.vehicle?.angle || 0) * ahead));
+      const camX = Math.max(0, Math.min(WORLD.width - 1280, state.stageCamera ? state.stageCamera.x - 640 : focus.x - 640 + Math.cos(state.vehicle?.angle || 0) * ahead));
+      const camY = Math.max(0, Math.min(WORLD.height - 720, state.stageCamera ? state.stageCamera.y - 360 : focus.y - 360 + Math.sin(state.vehicle?.angle || 0) * ahead));
       const shakeX = state.shake ? Math.sin(state.time * 80) * state.shake : 0;
       const shakeY = state.shake ? Math.cos(state.time * 68) * state.shake : 0;
       ctx.save();
       ctx.translate(-camX + shakeX, -camY + shakeY);
-      drawCity(ctx, { x: camX, y: camY }, state.cityRng, Math.floor(state.dayClock));
-      drawMissionMarker(ctx, state);
-      drawActivities(ctx, state);
+      drawCity(ctx, { x: camX, y: camY }, state.cityRng, Math.floor(state.dayClock), state);
+      drawMissionMarker(ctx, state, { x: camX, y: camY });
+      drawActivities(ctx, state, { x: camX, y: camY });
       if (state.vehicle && !state.traffic.includes(state.vehicle) && !state.boats.includes(state.vehicle)) drawVehicle(ctx, state.vehicle, true);
       for (const skid of state.skids) {
         ctx.save();
@@ -115,9 +115,14 @@
   }
 
   function drawLighting(ctx, state) {
-    const night = Math.max(0, Math.min(0.55, (Math.sin((state.dayClock / 24) * Math.PI * 2 - Math.PI / 2) + 0.15) * 0.32));
+    const phase = (state.dayClock - 12) / 24 * Math.PI * 2;
+    const night = Math.max(0, Math.min(0.55, (1 - Math.cos(phase)) * 0.26));
     if (night > 0.02) {
       ctx.fillStyle = `rgba(15,32,49,${night})`;
+      ctx.fillRect(0, 0, 1280, 720);
+    }
+    if (state.stagedShot) {
+      ctx.fillStyle = 'rgba(255,190,108,.055)';
       ctx.fillRect(0, 0, 1280, 720);
     }
     if (state.rain) {

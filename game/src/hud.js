@@ -26,16 +26,16 @@
     text(ctx, `$${save.cash.toLocaleString()}`, 38, 78, 27, '#f6f1e4', 'bold');
     text(ctx, `HEAT  ${'★'.repeat(state.police.wanted)}${'☆'.repeat(5 - state.police.wanted)}`, 38, 107, 15, state.police.wanted ? '#f08d70' : '#c5c8b9', 'bold');
     panel(ctx, 22, 139, 262, 83);
-    text(ctx, 'HEALTH', 38, 162, 11, '#d9dfd4', 'bold');
+    text(ctx, 'HEALTH', 38, 171, 11, '#d9dfd4', 'bold');
     ctx.fillStyle = '#384548';
-    ctx.fillRect(38, 171, 225, 11);
+    ctx.fillRect(96, 162, 167, 10);
     ctx.fillStyle = '#d45948';
-    ctx.fillRect(38, 171, 225 * save.health / 100, 11);
-    text(ctx, 'ARMOR', 38, 198, 11, '#d9dfd4', 'bold');
+    ctx.fillRect(96, 162, 167 * save.health / 100, 10);
+    text(ctx, 'ARMOR', 38, 202, 11, '#d9dfd4', 'bold');
     ctx.fillStyle = '#384548';
-    ctx.fillRect(38, 205, 225, 9);
+    ctx.fillRect(96, 193, 167, 10);
     ctx.fillStyle = '#65b4ab';
-    ctx.fillRect(38, 205, 225 * save.armor / 100, 9);
+    ctx.fillRect(96, 193, 167 * save.armor / 100, 10);
     drawMinimap(ctx, state);
     if (!state.vehicle) {
       const weapon = WEAPONS[state.weaponIndex];

@@ -78,6 +78,11 @@
     ctx.save();
     ctx.translate(car.x, car.y);
     ctx.rotate(car.angle);
+    ctx.fillStyle = 'rgba(39,46,43,.3)';
+    ctx.beginPath();
+    ctx.ellipse(3, 5, car.type === 7 ? 25 : 29, car.type === 7 ? 12 : 16, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.scale(1.08, 1.08);
     if (car.type === 7) {
       ctx.fillStyle = '#173d44';
       ctx.beginPath();
@@ -117,8 +122,10 @@
       if (car.type === 5) {
         ctx.fillStyle = '#fff2d1';
         ctx.fillRect(-11, -12, 18, 3);
+        ctx.fillStyle = '#3d79d5';
+        ctx.fillRect(-9, -17, 6, 4);
         ctx.fillStyle = '#cf5549';
-        ctx.fillRect(-2, -17, 11, 4);
+        ctx.fillRect(-2, -17, 7, 4);
       }
       if (car.type === 1) {
         ctx.fillStyle = '#272d2b';
