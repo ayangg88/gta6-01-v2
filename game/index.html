@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#111c22">
+<link rel="icon" href="data:,">
 <title>Meridian Heat</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#10191d;color:#f3efe3;font-family:Arial,Helvetica,sans-serif}
@@ -14,7 +15,6 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 <body>
 <canvas id="game" aria-label="Meridian Heat open-world crime game"></canvas>
 <p id="status" role="status" aria-live="polite"></p>
-<script>window.addEventListener('error',event=>{document.getElementById('status').textContent=event.message;});</script>
 <script type="module" src="./src/main.js"></script>
 </body>
 </html>

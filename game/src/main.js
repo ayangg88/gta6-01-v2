@@ -30,9 +30,9 @@ function createState(saved = loadSave()) {
     save: saved,
     player: { x: 815, y: 700 },
     vehicle: null,
-    traffic: seedTraffic(rng),
+    traffic: [createVehicle(860, 700, 3), createVehicle(1480, 880, 1), createVehicle(510, 570, 6), ...seedTraffic(rng)],
     pedestrians: seedPedestrians(rng),
-    boats: [createVehicle(2410, 2192, 7, -0.18), createVehicle(2660, 2207, 7, -0.12)],
+    boats: [createVehicle(2410, 2010, 7, -0.18), createVehicle(2660, 2207, 7, -0.12)],
     packages: [],
     police: createPolice(),
     effects: [],
@@ -95,13 +95,13 @@ let state = createState();
 let screen = query.get('play') === '1' ? 'play' : 'title';
 let last = performance.now();
 let accumulator = 0;
-let shotReady = false;
+
 
 function nearestVehicle() {
   let nearest = null;
   let distance = 92;
   for (const car of state.traffic) {
-    if (!car.civilian || car === state.vehicle) continue;
+    if (car === state.vehicle) continue;
     const candidate = Math.hypot(car.x - state.player.x, car.y - state.player.y);
     if (candidate < distance) {
       nearest = car;
@@ -290,7 +290,12 @@ function update(dt) {
   }
   updatePedestrians(state, dt);
   updatePolice(state, dt);
+  const previous = state.activeMission;
   updateMission(state);
+  if (previous != null && state.activeMission == null) {
+    state.missionComplete = MISSIONS[previous];
+    storeSave(state.save);
+  }
   state.district = districtName(state.player.x, state.player.y);
   if (state.wasted) screen = 'wasted';
   if (state.busted) screen = 'busted';
@@ -314,13 +319,7 @@ function respawn() {
 
 function render() {
   state.aim = Math.atan2(pointer.y - 360, pointer.x - 640);
-  try {
-    renderer.paint(state, screen);
-  } catch (error) {
-    status.textContent = `DRAW ERROR: ${error.message}`;
-    status.style.cssText = 'position:fixed;inset:0;width:auto;height:auto;clip-path:none;background:#300;color:#fff;font:24px monospace;padding:40px;z-index:9';
-    throw error;
-  }
+  renderer.paint(state, screen);
 }
 
 const pointer = { x: 640, y: 360 };
@@ -342,6 +341,7 @@ function frame(now) {
   const delta = Math.min(0.16, (now - last) / 1000);
   last = now;
   if (screen === 'play') {
+    state.screen = screen;
     accumulator += delta;
     updateInteractions();
     while (accumulator >= STEP) {
@@ -425,4 +425,4 @@ if (shot) {
   requestAnimationFrame(frame);
 }
 
-window.addEventListener('beforeunload', () => storeSave(state.save));
+if (!shot) window.addEventListener('beforeunload', () => storeSave(state.save));

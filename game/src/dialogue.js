@@ -7,7 +7,7 @@ export function typewriter(ctx, name, message, progress, x, y, width) {
   ctx.fillText(name.toUpperCase(), x + 24, y + 26);
   ctx.fillStyle = '#f4eddb';
   ctx.font = '17px Arial';
-  const shown = message.slice(0, Math.floor(progress * 44));
+  const shown = message.slice(0, Math.floor(progress * message.length));
   const words = shown.split(' ');
   let line = '';
   let lineY = y + 57;

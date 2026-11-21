@@ -35,6 +35,8 @@ export function drawCity(ctx, camera, rng, time) {
   for (let stripe = 0; stripe < 9; stripe += 1) {
     box(ctx, 60 + stripe * 28, 2015, 18, 585, stripe % 2 ? '#e6d497' : '#d7c484');
   }
+  box(ctx, 200, 180, 2900, 1770, '#b9ad8b');
+  box(ctx, 2050, 0, 112, 2100, '#287a7d');
   box(ctx, 0, 250, 3100, 180, '#343f42');
   box(ctx, 200, 0, 2900, 180, '#343f42');
   box(ctx, 200, 1050, 2900, 180, '#343f42');
@@ -75,7 +77,7 @@ export function drawCity(ctx, camera, rng, time) {
         box(ctx, x, y, width, height, district.color);
         box(ctx, x + 8, y + 8, width - 16, 8, '#e7d6aa');
         const floors = Math.round(2 + district.height * 5);
-        for (let floor = 0; floor < floors; floor += 1) {
+        for (let floor = 0; floor < Math.min(floors, 5); floor += 1) {
           for (let window = 0; window < 3; window += 1) {
             box(ctx, x + 12 + window * 23, y + 24 + floor * 12, 10, 7, time % 2 && rng() > 0.45 ? '#efce7c' : '#5f7e79');
           }

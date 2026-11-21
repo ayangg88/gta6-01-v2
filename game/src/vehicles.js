@@ -22,7 +22,7 @@ export function seedTraffic(rng) {
 
 export function updateVehicles(state, dt) {
   for (const car of state.traffic) {
-    if (car === state.vehicle) continue;
+    if (car === state.vehicle || !car.civilian) continue;
     car.x += Math.cos(car.angle) * car.speed * dt;
     car.y += Math.sin(car.angle) * car.speed * dt;
     if (car.x < 160 || car.x > WORLD.width - 170) car.angle = Math.PI - car.angle;
@@ -46,7 +46,7 @@ export function updateVehicles(state, dt) {
   player.angle += steering * Math.min(1, Math.abs(player.speed) / 75) * grip * player.speed * dt;
   player.x += Math.cos(player.angle) * player.speed * dt;
   player.y += Math.sin(player.angle) * player.speed * dt;
-  if (player.x < 190 || player.x > 3085 || player.y < 205 || player.y > 1950) {
+  if (player.type !== 7 && (player.x < 190 || player.x > 3085 || player.y < 205 || player.y > 1950)) {
     player.x -= Math.cos(player.angle) * player.speed * dt;
     player.y -= Math.sin(player.angle) * player.speed * dt;
     player.speed *= -0.23;

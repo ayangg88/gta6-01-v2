@@ -33,6 +33,16 @@ export function createRenderer(canvas) {
     ctx.translate(-camX + shakeX, -camY + shakeY);
     drawCity(ctx, { x: camX, y: camY }, state.cityRng, Math.floor(state.dayClock));
     drawMissionMarker(ctx, state);
+    if (state.vehicle && !state.traffic.includes(state.vehicle) && !state.boats.includes(state.vehicle)) drawVehicle(ctx, state.vehicle, true);
+    for (const skid of state.skids) {
+      ctx.save();
+      ctx.translate(skid.x, skid.y);
+      ctx.rotate(skid.angle);
+      ctx.fillStyle = 'rgba(21,28,28,.36)';
+      ctx.fillRect(-8, -11, 16, 3);
+      ctx.fillRect(-8, 8, 16, 3);
+      ctx.restore();
+    }
     for (const packageItem of state.packages) {
       if (packageItem.collected) continue;
       ctx.fillStyle = '#f2cf5e';
